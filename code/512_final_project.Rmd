@@ -1,0 +1,670 @@
+---
+title: "512_Final_Project"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, message=FALSE}
+library(printr)
+library(readr)
+library(tidyverse)
+library(ggplot2)
+library(reshape2)
+library(pROC)
+library(rsample)
+library(ROCR)
+library(caret)
+library(randomForest)
+library(kableExtra)
+library(gridExtra)
+library(ggplot2)
+```
+
+```{r}
+train <- read_csv("train.csv")
+```
+
+```{r}
+head(train)
+```
+
+```{r}
+nrow(train)
+```
+
+# EDA
+
+```{r}
+mythem <- theme(
+  legend.position = "left",
+  axis.text.x = element_text(colour = "black", family = "Times", size = 14),
+  axis.text.y = element_text(family = "Times", size = 14, face = "plain"),
+  axis.title.y = element_text(family = "Times", size = 14, face = "plain"),
+  axis.title.x = element_text(family = "Times", size = 14, face = "plain"),
+  plot.title = element_text(family = "Times", size = 15, face = "bold", hjust = 0.5),
+  panel.grid.major = element_blank(),
+  panel.grid.minor = element_blank()
+)
+```
+
+```{r}
+train$Response = as.character(train$Response)
+```
+
+```{r}
+to_percent = scales::percent_format(accuracy = 0.01)
+
+options(scipen=200)
+ggplot(train,aes(x=Response, fill=Response)) + 
+  geom_bar(stat="count") +
+  stat_count(geom = "text", colour = "black", size = 3.5,
+             aes(label = sprintf("%d(%s)", ..count..,
+                 to_percent(..count../sum(..count..)))),
+                position=position_stack(vjust=0.5)) +
+  ggtitle("Count of different response") + 
+  ylab("Count") + xlab("Response") + theme_bw() + 
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none")
+```
+
+```{r}
+ggplot(train, aes(x = Gender, fill = Gender)) +
+  geom_bar(stat="count") + 
+  stat_count(geom = "text", colour = "black", size = 3.5,
+             aes(label = sprintf("%d(%s)", ..count..,
+                 to_percent(..count../sum(..count..)))),
+                position=position_stack(vjust=0.5)) +
+  ggtitle("Count of different gender by response") +
+  ylab("Count") +
+  xlab("Gender") +
+  facet_grid(. ~ Response) + 
+  theme_bw() +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none")
+```
+
+```{r}
+ggplot(train, aes(x = Vehicle_Age, fill = Vehicle_Age)) +
+  geom_bar(stat="count") +
+  stat_count(geom = "text", colour = "black", size = 3.5,
+             aes(label = sprintf("%d(%s)", ..count..,
+                 to_percent(..count../sum(..count..)))),
+                position=position_stack(vjust=0.5)) + 
+  ggtitle("Count of cars at different ages by response") +
+  ylab("Count") +
+  xlab("Years") +
+  facet_grid(. ~ Response) + 
+  theme_bw() +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none")
+```
+
+```{r}
+ggplot(train, aes(x = Vehicle_Damage, fill = Vehicle_Damage)) +
+  geom_bar(stat="count") +
+  stat_count(geom = "text", colour = "black", size = 3.5,
+             aes(label = sprintf("%d(%s)", ..count..,
+                 to_percent(..count../sum(..count..)))),
+                position=position_stack(vjust=0.5)) +
+  ggtitle("Count of cars if previously damaged by response") +
+  ylab("Count") +
+  xlab("Previously Damaged") +
+  facet_grid(. ~ Response) +
+  theme_bw() +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none")
+```
+
+```{r}
+train$ToHighlight <- case_when(
+  train$Age >= 70 ~ "No",
+  TRUE ~ "Yes"
+)
+```
+
+```{r}
+ggplot(train,aes(x=Age, fill=ToHighlight))+ 
+  geom_histogram(bins = 60, colour="white",alpha=0.5)+
+  ggtitle("Distribution of the Age of Customers")+ 
+  ylab("Count") + xlab("Age") + 
+  theme_bw() + 
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none", axis.line.x = element_line(colour = 'black', size=0.5, linetype='solid'), axis.line.y = element_line(colour = 'black', size=0.5, linetype='solid'))
+```
+
+```{r}
+ggplot(train, aes(x = Vintage)) +
+  geom_histogram(bins = 60, colour = "white", fill = "blue", alpha = 0.5) +
+  ggtitle("Distribution of days that customer has been associated with the company") +
+  ylab("Density") +
+  xlab("Days") +
+  facet_grid(. ~ Response) +
+  theme_bw() +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none")
+```
+
+```{r}
+ggplot(train, aes(x = Age, y = Annual_Premium)) +
+  geom_point(colour = "blue", alpha = 0.5, size = 0.9) + 
+  ylab("Annual Premium") +
+  xlab("Age") +
+  ggtitle("Distribution of annual premium by age") +
+  theme_bw() +
+  theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5))
+```
+
+# Data Preprocessing and Feature Engineering
+
+```{r}
+# Remove id
+train <- train[, -c(1, 13)]
+```
+
+```{r}
+# One-hot encoding for Gender
+train$Gender <- case_when(
+  train$Gender == "Male" ~ 1,
+  TRUE ~ 0
+)
+
+# One-hot encoding for Vehicle_Damage
+train$Vehicle_Damage <- case_when(
+  train$Vehicle_Damage == "Yes" ~ 1,
+  TRUE ~ 0
+)
+
+#
+train$Vehicle_Age <- case_when(
+  train$Vehicle_Age == "< 1 Year" ~ 0,
+  train$Vehicle_Age == "1-2 Year" ~ 1,
+  TRUE ~ 2
+)
+
+train$Response = as.numeric(train$Response)
+```
+
+```{r}
+head(train)
+```
+
+```{r}
+train_corr <- round(cor(train), 2)
+head(train_corr)
+```
+
+```{r}
+# Get upper triangle of the correlation matrix
+get_upper_tri <- function(cormat) {
+  cormat[lower.tri(cormat)] <- NA
+  return(cormat)
+}
+upper_tri <- get_upper_tri(train_corr)
+upper_tri
+```
+
+```{r}
+melted_cormat <- melt(upper_tri, na.rm = TRUE)
+H2 <- ggplot(data = melted_cormat, aes(Var2, Var1, fill = value)) +
+  geom_tile(color = "white") +
+  scale_fill_gradient2(
+    low = "blue", high = "red", mid = "white",
+    midpoint = 0, limit = c(-0.5, 1), space = "Lab",
+    name = "Pearson\nCorrelation"
+  ) +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, vjust = 1, size = 8, hjust = 1)) +
+  coord_fixed()
+```
+
+```{r}
+# Add correlation coefficients on the heatmap
+H3 <- H2 +
+  geom_text(aes(Var2, Var1, label = value), color = "black", size = 3) +
+  theme(
+    axis.title.x = element_blank(),
+    axis.title.y = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.border = element_blank(),
+    panel.background = element_blank(),
+    axis.ticks = element_blank(),
+    legend.justification = c(1, 0),
+    legend.position = c(0.55, 0.75),
+    legend.direction = "horizontal"
+  ) +
+  guides(fill = guide_colorbar(
+    barwidth = 7, barheight = 0.5,
+    title.position = "top", title.hjust = 0.5
+  ))
+
+H3
+```
+
+# Modelling
+
+## K-means Clustering
+
+```{r}
+set.seed(42)
+km <- kmeans(train[, -11], 2, nstart = 20)
+```
+
+```{r}
+tab_kmean = table(Clusters = as.factor(km$cluster), Observed = train$Response)
+rownames(tab_kmean) = c("Cluster: 1", "Cluster: 2")
+tab_kmean %>% 
+  kable(digits = 4, caption = "Table: Cluster v.s Actual") %>% 
+  kable_styling("striped", full_width = FALSE) %>%
+  column_spec(column = 1, bold = TRUE)
+```
+
+```{r}
+62824/(62824+271575)
+271575/(62824+271575)
+```
+
+```{r}
+9070/(9070+37640)
+37640/(9070+37640)
+```
+
+```{r}
+conf_matrix <- read_delim("y Not_interest Interest
+Cluster2 271575 37640
+Cluster1 62824 9070", delim = " ", show_col_types = FALSE)
+
+conf_matrix <- conf_matrix %>%
+  gather(x, value, Interest:Not_interest)
+
+ggplot(conf_matrix, aes(x = x, y = y, fill = value)) +
+  geom_tile() +
+  theme_bw() +
+  coord_equal() +
+  scale_fill_distiller(palette = "Greens", direction = 1) +
+  ggtitle("Confusion Matrix of Kmeans Clustering") +
+  xlab("Observed") +
+  ylab("Predicted") +
+  geom_text(aes(label = value), color = "black") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Assign cluster 2 to Not interest and cluster 1 to interest.
+
+```{r}
+acc_km <- (271275 + 9070) / nrow(train)
+sens_km <- 271575 / (271575 + 62824)
+spec_km <- 9070 / (9070 + 37640)
+```
+
+Assume `Not_interest` as positive class.
+
+The accuracy is `r acc_km`. The sensitivity or true positive rate is `r sens_km`. The specificity or false positive rate is `r spec_km`.
+
+## Logistic Regression
+
+```{r}
+set.seed(42)
+# Train-test split
+train$Response <- as.factor(train$Response)
+train_test_split <- initial_split(train, prop = 0.8)
+x_train <- training(train_test_split)
+x_test <- testing(train_test_split)
+```
+
+```{r}
+table(x_train$Response)
+```
+
+```{r}
+table(x_test$Response)
+```
+
+```{r}
+37364 / (37364 + 267523)
+9346 / (9346 + 66876)
+```
+
+Train and test data has similar proportion of response variables.
+
+```{r}
+# Logistic using all variables
+logit <- glm(Response ~ ., data = x_train, family = binomial)
+summary(logit)
+```
+
+Variables `Region_Code` and `Vintage` are insignificant.
+
+```{r}
+preds <- predict(logit, x_train, type = "response")
+test_roc <- roc(x_train$Response ~ preds, plot = TRUE, print.auc = TRUE, quiet = TRUE)
+```
+
+Find the best cutoff.
+
+```{r}
+pred <- predict(logit, x_train, type = "response")
+preds <- prediction(pred, x_train$Response)
+sens <- data.frame(
+  x = unlist(performance(preds, "sens")@x.values),
+  y = unlist(performance(preds, "sens")@y.values)
+)
+spec <- data.frame(
+  x = unlist(performance(preds, "spec")@x.values),
+  y = unlist(performance(preds, "spec")@y.values)
+)
+
+sens %>% ggplot(aes(x, y)) +
+  geom_line() +
+  geom_line(data = spec, aes(x, y, col = "red")) +
+  scale_y_continuous(sec.axis = sec_axis(~., name = "Specificity")) +
+  labs(x = "Cutoff", y = "Sensitivity") +
+  theme(axis.title.y.right = element_text(colour = "red"), legend.position = "none")
+```
+
+```{r}
+cutoff <- sens[which.min(abs(spec$y - sens$y)), ]$x # Best cutoff
+glm_pred <- rep(0, nrow(x_test))
+glm_prob <- predict(logit, x_test, type = "response")
+glm_pred[glm_prob > cutoff] <- 1
+confusionMatrix(as.factor(glm_pred), as.factor(x_test$Response))
+```
+
+```{r}
+conf_matrix <- read_delim("y Not_interest Interest
+Not_interest 50346 2280
+Interest 16530 7066", delim = " ", show_col_types = FALSE)
+
+conf_matrix <- conf_matrix %>%
+  gather(x, value, Interest:Not_interest)
+
+ggplot(conf_matrix, aes(x = x, y = y, fill = value)) +
+  geom_tile() +
+  theme_bw() +
+  coord_equal() +
+  scale_fill_distiller(palette = "Greens", direction = 1) +
+  ggtitle("Confusion matrix of logistic regression using all variables") +
+  xlab("Observed") +
+  ylab("Predicted") +
+  geom_text(aes(label = value), color = "black") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Remove insignificant variables `Region_Code` and `Vintage`.
+
+```{r}
+logit_2 <- glm(Response ~ . - Region_Code - Vintage, data = x_train, family = binomial)
+summary(logit_2)
+```
+
+```{r}
+preds <- predict(logit_2, x_train, type = "response")
+test_roc <- roc(x_train$Response ~ preds, plot = TRUE, print.auc = TRUE, quiet = TRUE)
+```
+
+
+```{r}
+pred <- predict(logit_2, x_train, type = "response")
+preds <- prediction(pred, x_train$Response)
+sens <- data.frame(
+  x = unlist(performance(preds, "sens")@x.values),
+  y = unlist(performance(preds, "sens")@y.values)
+)
+spec <- data.frame(
+  x = unlist(performance(preds, "spec")@x.values),
+  y = unlist(performance(preds, "spec")@y.values)
+)
+
+sens %>% ggplot(aes(x, y)) +
+  geom_line() +
+  geom_line(data = spec, aes(x, y, col = "red")) +
+  scale_y_continuous(sec.axis = sec_axis(~., name = "Specificity")) +
+  labs(x = "Cutoff", y = "Sensitivity") +
+  theme(axis.title.y.right = element_text(colour = "red"), legend.position = "none")
+```
+
+```{r}
+cutoff <- sens[which.min(abs(spec$y - sens$y)), ]$x
+glm_pred <- rep(0, nrow(x_test))
+glm_prob <- predict(logit_2, x_test, type = "response")
+glm_pred[glm_prob > cutoff] <- 1
+confusionMatrix(as.factor(glm_pred), as.factor(x_test$Response))
+```
+
+```{r}
+conf_matrix <- read_delim("y Not_interest Interest
+Not_interest 50343 2273
+Interest 16533 7073", delim = " ", show_col_types = FALSE)
+
+conf_matrix <- conf_matrix %>%
+  gather(x, value, Interest:Not_interest)
+
+ggplot(conf_matrix, aes(x = x, y = y, fill = value)) +
+  geom_tile() +
+  theme_bw() +
+  coord_equal() +
+  scale_fill_distiller(palette = "Greens", direction = 1) +
+  ggtitle("Confusion Matrix of Logistic Regression") +
+  xlab("Observed") +
+  ylab("Predicted") +
+  geom_text(aes(label = value), color = "black") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+
+## Random Forest
+
+### Tuning Parameters
+
+Split the data into train, validation and test. We will use train data to fit model and validation data to tune parameters.
+
+```{r}
+set.seed(42)
+train_val_split <- initial_split(x_train, prop = 0.8, )
+rf_train <- training(train_val_split)
+rf_val <- testing(train_val_split)
+```
+
+Try mtry from 2 to 10.
+
+```{r}
+# mtry = 2
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_9 <- randomForest(Response ~ ., data = rf_train, mtry = 2, ntree = 200)
+preds <- predict(rf_9, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 3
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_1 <- randomForest(Response ~ ., data = rf_train, mtry = 3, ntree = 200)
+preds <- predict(rf_1, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 4
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_2 <- randomForest(Response ~ ., data = rf_train, mtry = 4, ntree = 200)
+preds <- predict(rf_2, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 5
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_3 <- randomForest(Response ~ ., data = rf_train, mtry = 5, ntree = 200)
+preds <- predict(rf_3, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 6
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_4 <- randomForest(Response ~ ., data = rf_train, mtry = 6, ntree = 200)
+preds <- predict(rf_4, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 7
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_5 <- randomForest(Response ~ ., data = rf_train, mtry = 7, ntree = 200)
+preds <- predict(rf_5, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 8
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_6 <- randomForest(Response ~ ., data = rf_train, mtry = 8, ntree = 200)
+preds <- predict(rf_6, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 9
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_7 <- randomForest(Response ~ ., data = rf_train, mtry = 9, ntree = 200)
+preds <- predict(rf_7, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# mtry = 10
+set.seed(42)
+# levels(x_train$Response) = c("Not_interest", "Interest")
+rf_8 <- randomForest(Response ~ ., data = rf_train, mtry = 10, ntree = 200)
+preds <- predict(rf_8, rf_val)
+confusionMatrix(preds, rf_val$Response)
+```
+
+```{r}
+# This table only shows on html
+tibble(
+  "mtry" = c(2:10),
+  "Accuracy" = c(0.8760, 0.8761, 0.8738, 0.8692, 0.8668, 0.8660, 0.8656, 0.8655, 0.865),
+  "Sensitivity" = c(1.0000, 0.999027, 0.99038, 0.9779, 0.9723, 0.9709, 0.9699, 0.9692, 0.9686),
+  "Specificity" = c(0.0000, 0.007405, 0.05025, 0.1009, 0.1222, 0.1250, 0.1291, 0.1330, 0.1333)
+) %>%
+  kable(
+    digits = 4,
+    caption = "Table: **Tuning Results of Random Forest, ntree=200**"
+  ) %>%
+  kable_styling("striped", full_width = FALSE) %>%
+  column_spec(column = 1, bold = TRUE)
+```
+
+Choose mtry = 10 with largest specificity.
+
+## Best Random Forest Model
+
+```{r}
+pred_best <- predict(rf_8, x_test)
+confusionMatrix(pred_best, x_test$Response)
+```
+
+```{r}
+conf_matrix <- read_delim("y Not_interest Interest
+Not_interest 64608 8123
+Interest 2268 1223", delim = " ", show_col_types = FALSE)
+
+conf_matrix <- conf_matrix %>%
+  gather(x, value, Interest:Not_interest)
+
+ggplot(conf_matrix, aes(x = x, y = y, fill = value)) +
+  geom_tile() +
+  theme_bw() +
+  coord_equal() +
+  scale_fill_distiller(palette = "Greens", direction = 1) +
+  ggtitle("Confusion Matrix of Random Forest") +
+  xlab("Observed") +
+  ylab("Predicted") +
+  geom_text(aes(label = value), color = "black") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+Variable Importance.
+
+```{r}
+i_scores <- varImp(logit_2, conditional=TRUE)
+i_scores <- i_scores %>% tibble::rownames_to_column("var")
+i_scores$var<- i_scores$var %>% as.factor()
+```
+
+```{r}
+i_bar <- ggplot(data = i_scores) + 
+  geom_bar(stat = "identity",#it leaves the data without count and bin
+    mapping = aes(x = reorder(var, Overall), y=Overall, fill = var), 
+    show.legend = FALSE,
+    width = 1) + 
+  ggtitle("Feature Importance Ranking")+
+  labs(x = "Feature", y = "Importance") 
+
+i_bar + coord_flip() + theme_bw() + theme(panel.border = element_blank(), 
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(), 
+        plot.title = element_text(size=14,face="bold",hjust = 0.5),
+        legend.position = "none")
+```
+
+## Modelling Results
+
+```{r}
+# This table only shows on html
+tibble(
+  "Model" = c("Logistic Regression",
+    "Logistic Regression", "Random Forest"
+  ),
+  "Tuning" = c("All variables", "Significant variables only", "mtry=10, ntree=200"),
+  "Accuracy" = c(0.7532, 0.7533, 0.8638),
+  "Sensitivity" = c(0.7528, 0.7528, 0.9661),
+  "Specificity" = c(0.7560, 0.7568, 0.1316)
+) %>%
+  kable(
+    digits = 4,
+    caption = "Table: **Classification Results on Test Data**, benchmark: Specificity=0.1226"
+  ) %>%
+  kable_styling("striped", full_width = FALSE) %>%
+  column_spec(column = 1, bold = TRUE)
+```
+
+# Conclusion
+
+If the insurance company wants high classification accuracy, it should choose random forest. 
+
+If the company wants high accuracy of predicting customers who are interested in vehicle insurance, it should choose logistic regression using only significant variables.
