@@ -1,0 +1,364 @@
+<!doctype html>
+<html lang="en">
+  <head>
+  	<title>ANLY 599 Homework 3</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <link href="https://fonts.googleapis.com/css?family=Poppins:300,400,500,600,700,800,900" rel="stylesheet">
+		
+		<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="stylesheet" href="./css/style.css">
+  </head>
+  <body>
+		
+		<div class="wrapper d-flex align-items-stretch">
+			<nav id="sidebar">
+				<div class="p-4 pt-5">
+		  		<p style="font-size:20px">ANLY 599 Homework 3</p>
+          <p>Group Member: Ahmed Khair, Neil, Shide Pu</p>
+          <div style="position: fixed;">
+	        <ul class="list-unstyled components mb-5">
+	          <li><a href="#home">Home &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp &nbsp</a></li>
+            <li><a href="#source">Source</a></li>
+            <li><a href="#introduction">Introduction</a></li>
+            <li><a href="#visualization">Data Visualization</a></li>
+            <li>
+              <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="true" class="dropdown-toggle">Data Preprocessing</a>
+              <ul class="list-unstyled collapse show" id="homeSubmenu" style>
+                <li><a href="#data_cleaning">Data Cleaning</a></li>
+                <li><a href="#feature">Feature Engineering</a></li>
+              </ul>
+            </li>
+            <li>
+              <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="true" class="dropdown-toggle">Model Training</a>
+              <ul class="list-unstyled collapse show" id="homeSubmenu" style>
+                <li><a href="#logit">Logistic Regression</a></li>
+                <li><a href="#rf">Random Forest</a></li>
+              </ul>
+            </li>
+	          <li><a href="#result">Result Analysis</a></li>
+	        </ul></div>
+
+	        <div class="footer">
+	        	<p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+						  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
+	        </div>
+
+	      </div>
+    	</nav>
+
+        <!-- Page Content  -->
+      <div id="content" class="p-4 p-md-5">
+
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+          <div class="container-fluid">
+
+            <button type="button" id="sidebarCollapse" class="btn btn-primary">
+              <i class="fa fa-bars"></i>
+              <span class="sr-only">Toggle Menu</span>
+            </button>
+            <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <i class="fa fa-bars"></i>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+              <ul class="nav navbar-nav ml-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#home">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#source">Source</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#introduction">Introduction</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#visualization">Data Visualization</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#data_preprocessing">Data Preprocessing</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#model_training">Model Training</a>
+                </li>
+                <li class="nav-item">
+                  <a class="nav-link" href="#result">Result Analysis</a>
+              </li>
+              </ul>
+            </div>
+          </div>
+        </nav>
+        <section id='home'>
+          <h2 class="mb-4" >Title here</h2>
+        </section>
+        <br>
+        
+        <section id='source'>
+          <h3 class="mb-4" >Source</h3>
+          <a href='https://github.com/sp1470/ANLY599-HW1'>Github Page</a>
+          <br>
+          <a href='./code/anly599_hw1.html'>Coding Notebook</a>
+        </section>
+        <br><br>
+        
+        
+        <section id='introduction'>
+          <h3 class="mb-4" >Introduction</h3>
+          <p></p>
+        </section>
+        <br><br>
+        
+        <div style="text-align: center">
+            <img align="center" src="./plots/flow_chart.png" width="700px">
+          </div>
+          <div style="text-align: center; color: black" ><strong>The machine learning process in the project</strong></div>
+        <br><br>
+        
+         <section id="visualization">
+        <h3 class="mb-4" >Data Visualization</h3>
+      </section>
+      <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <p width="100px">There are 87.74% of customers who are not interested in vehicle insurance and 12.26% who are interested. If we simply predict all clients as interested, we should expect the prediction accuray around 12%. <strong>Thus, this proportion will be used as the benchmark to evaluate model performance.</strong>
+</p>
+            </td>
+              <td>
+                <div style="text-align: center"><img src="./plots/response.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Number of missing values in each feature</strong></div>
+            </td>
+          </tr>
+      </tbody></table>
+      <br>
+      <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <div style="text-align: center"><img src="./plots/age.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Distribution of age of clients</strong></div>
+            </td>
+              <td>
+                <p>Drivers aged above 70 should be consider as high-age drivers which are highlighted in the graph. High-age drivers have significantly higher risks than other drivers, so the insurance company should pay attention to this group of clients.
+</p>
+            </td>
+          </tr>
+      </tbody></table>
+      <br>
+      <p>
+        The following visualizations are not closely related to our analysis. They are provided as supplementary materials, so readers can make their own conclusions based on these visualizations.
+      </p>
+      <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <div style="text-align: center"><img src="./plots/gender.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Number of gender by response</strong></div>
+            </td>
+              <td>
+                <div style="text-align: center"><img src="./plots/vehicle_age.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Number of cars at different ages by response</strong></div>
+            </td>
+          </tr>
+      </tbody></table>
+      <br>
+      <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <div style="text-align: center"><img src="./plots/previously_damage.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Number of cars if previously damaged by response</strong></div>
+            </td>
+              <td>
+                <div style="text-align: center"><img src="./plots/vintage.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Distribution of days that customer has been associated with the company</strong></div>
+            </td>
+          </tr>
+      </tbody></table>
+      <br>
+      <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <div style="text-align: center"><img src="./plots/premium.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Distribution of annual premium by age</strong></div>
+            </td>
+              <td>
+            </td>
+          </tr>
+      </tbody></table>
+      
+      <br><br>
+          <section id="data_preprocessing">
+          <h3 class="mb-4" >Data Preprocessing</h3>
+          </section>
+          <div style="text-align: center">
+            <img align="center" src="./plots/data_preprocessing.png" width="400px">
+          </div>
+
+          <br>
+          <section id='data_cleaning'>
+          <h4 class="mb-4" >Data Cleaning</h4>
+          </section>
+          <p>
+            The dataset doesn't contain missing values and error values, so data cleaning is not necessary for the dataset.
+          </p>
+          
+      <br>
+      <section id='feature'>
+      <h4 class="mb-4" >Feature Engineering</h4>
+      </section>
+      <p>We apply <strong>ordinal encoding</strong> on categorical features which maps each unique label to an integer value. The details of ordinal encoding are shown below: 
+      <br>
+      &nbsp &nbsp Gender: Female ~ 0, Male ~ 1
+      <br>
+      &nbsp &nbsp Vehicle_Damage: No ~ 0, Yes ~ 1
+      <br>
+      &nbsp &nbsp Vehicle_Age: "< 1 Year" ~ 0, "1-2 Year" ~ 1, "> 2 Years" ~ 2
+</p>
+      <p>
+        The dataset after feature transformation is shown below.
+      </p>
+      <div style="text-align: center">
+            <img align="center" src="./plots/data.png" width="700px">
+          </div>
+          <div style="text-align: center; color: black" ><strong>Part of the data after transformation</strong></div>
+        </section>
+      <br>
+      <p>After feature transformation, all variables contain numeric values. Thus, we are able to produce a correlation heatmap as shown below.</p>
+      
+      <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <p width="100px">
+                  - Age ~ Vehicle_Age, 0.77:<br> 
+                  &nbsp &nbsp Older people tend to have older cars and <strong>old-car owners</strong> are more interested in vehicle insurance.
+                  <br>
+                  - Age ~ Policy _Sales_Channel, -0.58: <br>
+                  &nbsp &nbsp Old people tend to use brokers and agents, young customers use internet.
+                  <br>
+                  - Previously_ Insured ~ Vehicle_Damage, -0.82: <br>
+                  &nbsp &nbsp Most customers whose cars are not damaged in the past have vehicle insurance. <strong>Drivers with good driving habit</strong> should be considered as target clients.
+
+</p>
+            </td>
+              <td>
+                <div style="text-align: center"><img src="./plots/correlation.png" width="500px"></div>
+                <div style="text-align: center; color: black" ><strong>Correlation heatmap</strong></div>
+            </td>
+          </tr>
+      </tbody></table>
+      
+        <br><br>
+        <section id="model_training">
+        <h3 class="mb-4" >Model Training</h3>
+        </section>
+          <div style="text-align: center">
+            <img align="center" src="./plots/model_training.png" width="400px">
+          </div>
+          <div style="text-align: center; color: black" ><strong>Model training process</strong></div>
+        <p>In the project, we choose logistic regression and random forest models to predict health insurance owners' interest.</p>
+        <br>
+        <section id='logit'>
+          <h4 class="mb-4">Logistic Regression</h4>
+        </section>
+        <p>First, we use all variables to train a logistic regression model. The model summary shows that variables Region_Code and Vintage are insignificant.</p>
+        
+        <div style="text-align: center"><img src="./plots/logit_summary_1.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Summary of logistic regression using all variables</strong></div>
+        <p>
+          The AUC score of the model is 0.832
+        </p>
+        <div style="text-align: center"><img src="./plots/auc_1.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>ROC and AUC</strong></div>
+        <p>
+          We use the intersection of sensitivity (true positive rate) and specificity (true negative rate) as the best cutoff.
+        </p>
+        <div style="text-align: center"><img src="./plots/cutoff_1.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Best cutoff</strong></div>
+        <p>
+          The confusion matrix of the model is shown below.
+        </p>
+        <div style="text-align: center"><img src="./plots/matrix_1.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Confusion matrix of the logistic regression using all variables</strong></div>
+        <p>
+          Then, we remove insignificant variables Region_Code and Vintage to train another logistic regression model. All variables in the new model are significant.
+        </p>
+        <div style="text-align: center"><img src="./plots/logit_summary_2.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Summary of logistic regression using only significant variables</strong></div>
+        <p>
+          The AUC score of the model is 0.832.
+        </p>
+        <div style="text-align: center"><img src="./plots/auc_2.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>ROC and AUC</strong></div>
+        <p>
+          We use the intersection of sensitivity (true positive rate) and specificity (true negative rate) as the best cutoff.
+        </p>
+        <div style="text-align: center"><img src="./plots/cutoff_2.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Best cutoff</strong></div>
+        <p>
+          The confusion matrix of the model is shown below. This model has slightly better result than the previous one. This means we can achieve better result using a simpler model.
+        </p>
+        <div style="text-align: center"><img src="./plots/matrix_2.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Confusion matrix of the logistic regression using only significant variables</strong></div>
+        <br>
+        <section id='rf'>
+          <h4 class="mb-4">Random Forest</h4>
+        </section>
+        <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                We perform parameter tuning for random forest model. We use ntree=200 and try mtry from 2 to 10. Results of each parameter combination is shown in the table. The random forest using ntree = 200 and mtry = 10 has the best prediction accuracy.
+            </td>
+              <td>
+                <div style="text-align: center"><img src="./plots/rf_tune.png" width="350px"></div>
+                <div style="text-align: center; color: black" ><strong>Random forest tuning results</strong></div>
+            </td>
+          </tr>
+      </tbody></table>
+      <p>
+          The confusion matrix of the model is shown below.
+        </p>
+        <div style="text-align: center"><img src="./plots/matrix_rf.png" width="700px"></div>
+        <div style="text-align: center; color: black" ><strong>Confusion matrix of the best random forest</strong></div>
+      
+        <br><br>
+        <section id="result">
+          <h3 class="mb-4" >Result Analysis</h3>
+        </section>
+        <div style="text-align: center"><img src="./plots/result_process.png" width="400px"></div>
+        <div style="text-align: center; color: black" ><strong>The process of result analysis</strong></div>
+        <p>In this section we evaluate model results and choose the best model. We also make reccomendations for the insurance company based on results.</p>
+        <table width=100%>
+          <tbody>
+            <tr>
+              <td>
+                <div style="text-align: center"><img src="./plots/result.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Model results</strong></div>
+            </td>
+              <td>
+                <div style="text-align: center"><img src="./plots/feature.png" width="600px"></div>
+                <div style="text-align: center; color: black" ><strong>Feature importance ranking by the best model</strong></div>
+            </td>
+          </tr>
+      </tbody></table>
+      <p>Logistic regression using only significant variables has the highest accuracy of predicting clients' interest in vehicle insurance, so it is considered as the best model. The feature importance ranking is calculated based on the best model. The top two important features are: Vehicle_Damage and Vehicle_Age.</p>
+      <p>
+        Based on machine learning results and feature importance, we make the following reccomendations to the insurance company:
+        <br>
+        &nbsp &nbsp 1. Use <strong>logistic regression using only significant variables</strong> to predict clients' interest in vehicle insurance.
+        <br>
+        &nbsp &nbsp 2. Company's marketing strategies should focus on <strong>clients who don't damage cars previsouly and have old cars</strong>. It's worth noting that most of clients who damaged cars previously are interested in the vehicle insurance. However, giving insurance to these drivers may enourage them to take risky behviors again. Thus, to avoid moral hazard, we don't reccomend the company to consider them as target clients.
+      </p>
+        </div>
+		</div>
+
+    <script src="./website-source/js/jquery.min.js"></script>
+    <script src="./website-source/js/popper.js"></script>
+    <script src="./website-source/js/bootstrap.min.js"></script>
+    <script src="./website-source/js/main.js"></script>
+  </body>
+</html>
